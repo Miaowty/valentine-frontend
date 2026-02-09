@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 export default function ValentineCard() {
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
   const [noButtonPos, setNoButtonPos] = useState(null);
+
+  const cardRef = useRef(null);
 
   const noButtonTexts = ["No"];
 
@@ -47,54 +49,32 @@ export default function ValentineCard() {
   const currentNoText =
     noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
-  // CLICK = increase phase
   const handleNoClick = () => {
     setNoCount((prev) => prev + 1);
-  };
 
-  // DODGE CURSOR SMOOTHLY
-  const handleNoMove = (e) => {
+    if (!cardRef.current) return;
+
+    const cardRect = cardRef.current.getBoundingClientRect();
+
     const buttonWidth = 150;
     const buttonHeight = 50;
 
-    const minX = window.innerWidth * 0.2;
-    const maxX = window.innerWidth * 0.8 - buttonWidth;
-    const minY = window.innerHeight * 0.2;
-    const maxY = window.innerHeight * 0.8 - buttonHeight;
+    const padding = 40;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const minX = padding;
+    const maxX = cardRect.width - buttonWidth - padding;
 
-    const buttonCenterX = rect.left + rect.width / 2;
-    const buttonCenterY = rect.top + rect.height / 2;
+    const minY = padding;
+    const maxY = cardRect.height - buttonHeight - padding;
 
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
+    const randomX = Math.random() * (maxX - minX) + minX;
+    const randomY = Math.random() * (maxY - minY) + minY;
 
-    const distance = Math.hypot(
-      mouseX - buttonCenterX,
-      mouseY - buttonCenterY
-    );
-
-    if (distance < 120) {
-      const angle = Math.atan2(
-        buttonCenterY - mouseY,
-        buttonCenterX - mouseX
-      );
-
-      const dodgeDistance = 80;
-
-      let newX = rect.left + Math.cos(angle) * dodgeDistance;
-      let newY = rect.top + Math.sin(angle) * dodgeDistance;
-
-      newX = Math.max(minX, Math.min(maxX, newX));
-      newY = Math.max(minY, Math.min(maxY, newY));
-
-      setNoButtonPos({
-        position: "fixed",
-        left: `${newX}px`,
-        top: `${newY}px`,
-      });
-    }
+    setNoButtonPos({
+      position: "absolute",
+      left: `${randomX}px`,
+      top: `${randomY}px`,
+    });
   };
 
   const getYesButtonSize = () => {
@@ -127,7 +107,7 @@ export default function ValentineCard() {
           />
         </div>
       ) : (
-        <div className="card fade-in" key={noCount}>
+        <div className="card fade-in" key={noCount} ref={cardRef}>
           <div className="emoji-badge">{currentPhase.emoji}</div>
 
           <div className="image-wrapper">
@@ -153,7 +133,6 @@ export default function ValentineCard() {
               className="btn no-btn"
               style={noButtonPos ? noButtonPos : {}}
               onClick={handleNoClick}
-              onMouseMove={handleNoMove}
             >
               {currentNoText}
             </button>
@@ -183,6 +162,7 @@ export default function ValentineCard() {
         }
 
         .card {
+          position: relative;
           background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(10px);
           padding: 40px;
@@ -244,6 +224,8 @@ export default function ValentineCard() {
           gap: 15px;
           justify-content: center;
           margin-top: 20px;
+          width: 100%;
+          min-height: 80px;
         }
 
         .btn {
@@ -258,14 +240,19 @@ export default function ValentineCard() {
         .yes-btn {
           background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
           color: white;
+          transition: transform 0.2s ease;
+        }
+
+        .yes-btn:hover {
+          transform: scale(1.05);
         }
 
         .no-btn {
           background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
           color: white;
-          position: relative;
-          transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-          z-index: 9999;
+          position: absolute;
+          transition: all 0.25s ease;
+          z-index: 20;
         }
       `}</style>
     </div>
