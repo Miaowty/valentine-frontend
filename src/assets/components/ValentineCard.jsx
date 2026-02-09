@@ -4,118 +4,74 @@ export default function ValentineCard() {
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
   const [noButtonPos, setNoButtonPos] = useState(null);
+  const [shake, setShake] = useState(false);
 
   const cardRef = useRef(null);
 
-  const noButtonTexts = ["No"];
-
   const phases = [
-    {
-      text: "Will you be my Valentine?",
-      image: "/images/Cutesy cat.jpg",
-      emoji: "💌",
-    },
-    {
-      text: "What u mean no??",
-      image: "/images/Sad Hamster Sticker.gif",
-    },
-    {
-      text: "Subukan mo pindutin yang no na yan",
-      image: "/images/Sad Face Sticker.gif",
-    },
-    {
-      text: "Yes na kasiiiii",
-      image: "/images/Sad Cat Sticker by Capoo.gif",
-    },
-    {
-      text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA",
-      image: "/images/Sad Cat Sticker by MYAOWL.gif",
-    },
-    {
-      text: "LAST CHANCE HAHAHAHA",
-      image: "/images/Baby Meme GIF.gif",
-    },
-    {
-      text: "PIDI YAN KASI",
-      image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif",
-    },
-    {
-      text: "PINDUTIN MO NALANG YUNG YES PLEASE",
-      image: "/images/Sticker ねこ Sticker by Japan.gif",
-    },
+    { text: "Will you be my Valentine?", image: "/images/Cutesy cat.jpg", emoji: "💌" },
+    { text: "What u mean no??", image: "/images/Sad Hamster Sticker.gif" },
+    { text: "Subukan mo pindutin yang no na yan", image: "/images/Sad Face Sticker.gif" },
+    { text: "Yes na kasiiiii", image: "/images/Sad Cat Sticker by Capoo.gif" },
+    { text: "LAST CHANCE HAHAHAHA", image: "/images/Baby Meme GIF.gif" },
+    { text: "PIDI YAN KASI", image: "/images/Sad Neon Genesis Evangelion Sticker.gif" },
+    { text: "PINDUTIN MO NALANG YUNG YES PLEASE", image: "/images/Sticker ねこ Sticker.gif" }
   ];
 
   const currentPhase = phases[Math.min(noCount, phases.length - 1)];
-  const currentNoText =
-    noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
-  const handleNoClick = () => {
-    setNoCount((prev) => prev + 1);
-
+  const moveNoButton = () => {
     if (!cardRef.current) return;
 
-    const cardRect = cardRef.current.getBoundingClientRect();
-
-    const buttonWidth = 150;
-    const buttonHeight = 50;
+    const rect = cardRef.current.getBoundingClientRect();
 
     const padding = 40;
+    const btnW = 150;
+    const btnH = 50;
+
+    const speedMultiplier = Math.min(1 + noCount * 0.2, 2.5);
 
     const minX = padding;
-    const maxX = cardRect.width - buttonWidth - padding;
+    const maxX = rect.width - btnW - padding;
 
     const minY = padding;
-    const maxY = cardRect.height - buttonHeight - padding;
+    const maxY = rect.height - btnH - padding;
 
-    const randomX = Math.random() * (maxX - minX) + minX;
-    const randomY = Math.random() * (maxY - minY) + minY;
+    const x = Math.random() * (maxX - minX) + minX;
+    const y = Math.random() * (maxY - minY) + minY;
 
     setNoButtonPos({
-      position: "absolute",
-      left: `${randomX}px`,
-      top: `${randomY}px`,
+      left: `${x}px`,
+      top: `${y}px`,
+      transition: `all ${0.35 / speedMultiplier}s ease`
     });
   };
 
-  const getYesButtonSize = () => {
-    return Math.min(16 + noCount * 8, 80);
+  const handleNoClick = () => {
+    setNoCount(prev => prev + 1);
+
+    setShake(true);
+    setTimeout(() => setShake(false), 300);
+
+    setTimeout(moveNoButton, 60);
   };
+
+  const getYesSize = () => Math.min(16 + noCount * 8, 80);
 
   return (
     <div className="main-container">
       {yesPressed ? (
         <div className="card fade-in">
-          <img
-            src="/images/lego batman GIF.gif"
-            alt="Yes"
-            className="main-image"
-          />
-          <h1 className="title">YES?!</h1>
-          <div className="emoji-text">💕💕💕</div>
-          <img
-            src="/images/Happy In Love Sticker by KIKI.gif"
-            alt="Celebrate"
-            className="main-image"
-            style={{ margin: "20px 0" }}
-          />
-          <p className="subtitle">Yan ganyan dapat lang</p>
-          <p className="subtitle-small">HAHAHAHAHA</p>
-          <img
-            src="/images/Cat Love GIF.gif"
-            alt="Love"
-            className="main-image"
-          />
+          <div className="confetti"></div>
+          <h1 className="title">YES?! 💕</h1>
+          <img src="/images/Cat Love GIF.gif" className="main-image"/>
         </div>
       ) : (
-        <div className="card fade-in" key={noCount} ref={cardRef}>
+        <div className="card fade-in" ref={cardRef}>
           <div className="emoji-badge">{currentPhase.emoji}</div>
 
           <div className="image-wrapper">
-            <img
-              src={currentPhase.image}
-              alt="Valentine"
-              className="main-image"
-            />
+            <img src={currentPhase.image} className="main-image"/>
           </div>
 
           <h1 className="title">{currentPhase.text}</h1>
@@ -123,136 +79,97 @@ export default function ValentineCard() {
           <div className="button-container">
             <button
               className="btn yes-btn"
-              style={{ fontSize: `${getYesButtonSize()}px` }}
+              style={{ fontSize: `${getYesSize()}px` }}
               onClick={() => setYesPressed(true)}
             >
               ❤️ Yes
             </button>
 
             <button
-              className="btn no-btn"
-              style={noButtonPos ? noButtonPos : {}}
+              className={`btn no-btn ${shake ? "shake" : ""}`}
               onClick={handleNoClick}
+              onTouchStart={handleNoClick}
+              style={
+                noButtonPos
+                  ? { position: "absolute", ...noButtonPos }
+                  : { position: "relative" }
+              }
             >
-              {currentNoText}
+              No
             </button>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        .main-container {
-          min-height: 100vh;
-          width: 100vw;
-          background: linear-gradient(
-            135deg,
-            #ffeaa7 0%,
-            #fab1a0 25%,
-            #fd79a8 50%,
-            #e17055 75%,
-            #d63031 100%
-          );
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          overflow: hidden;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-            Roboto, Helvetica, Arial, sans-serif;
+        .main-container{
+          min-height:100vh;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:linear-gradient(135deg,#ffeaa7,#fab1a0,#fd79a8,#e17055,#d63031);
         }
 
-        .card {
-          position: relative;
-          background: rgba(255, 255, 255, 0.92);
-          backdrop-filter: blur(10px);
-          padding: 40px;
-          border-radius: 30px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-          text-align: center;
-          max-width: 500px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+        .card{
+          position:relative;
+          background:white;
+          padding:40px;
+          border-radius:30px;
+          text-align:center;
+          width:420px;
         }
 
-        .title {
-          font-size: 2rem;
-          color: #be185d;
-          margin: 20px 0;
-          font-weight: 700;
+        .button-container{
+          position:relative;
+          display:flex;
+          gap:15px;
+          justify-content:center;
+          min-height:80px;
         }
 
-        .subtitle {
-          font-size: 1.5rem;
-          color: #be185d;
-          font-weight: 600;
+        .btn{
+          padding:12px 24px;
+          border:none;
+          border-radius:50px;
+          cursor:pointer;
+          font-weight:bold;
         }
 
-        .subtitle-small {
-          font-size: 1.2rem;
-          color: #9d174d;
-          margin-bottom: 20px;
+        .yes-btn{
+          background:#22c55e;
+          color:white;
+          transition:.2s;
         }
 
-        .emoji-badge {
-          font-size: 3rem;
+        .yes-btn:hover{ transform:scale(1.08); }
+
+        .no-btn{
+          background:#ef4444;
+          color:white;
         }
 
-        .emoji-text {
-          font-size: 2rem;
+        .shake{
+          animation:shake .3s;
         }
 
-        .image-wrapper {
-          width: 100%;
-          height: 250px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        @keyframes shake{
+          0%{transform:translateX(0)}
+          25%{transform:translateX(-5px)}
+          50%{transform:translateX(5px)}
+          75%{transform:translateX(-5px)}
+          100%{transform:translateX(0)}
         }
 
-        .main-image {
-          max-width: 100%;
-          max-height: 250px;
-          border-radius: 16px;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-          object-fit: contain;
+        .confetti::after{
+          content:"💖 💕 💘 💞 💓 💗";
+          font-size:2rem;
+          display:block;
+          animation:fall 2s linear infinite;
         }
 
-        .button-container {
-          display: flex;
-          gap: 15px;
-          justify-content: center;
-          margin-top: 20px;
-          width: 100%;
-          min-height: 80px;
-        }
-
-        .btn {
-          padding: 12px 24px;
-          border-radius: 50px;
-          border: none;
-          cursor: pointer;
-          font-weight: bold;
-          white-space: nowrap;
-        }
-
-        .yes-btn {
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-          color: white;
-          transition: transform 0.2s ease;
-        }
-
-        .yes-btn:hover {
-          transform: scale(1.05);
-        }
-
-        .no-btn {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          color: white;
-          position: absolute;
-          transition: all 0.25s ease;
-          z-index: 20;
+        @keyframes fall{
+          0%{transform:translateY(-40px)}
+          100%{transform:translateY(120px)}
         }
       `}</style>
     </div>
