@@ -112,7 +112,7 @@ export default function ValentineCard() {
             alt="Love" 
             className="main-image"
           />
-          <div className="emoji-row">🩷❤️🧡💛💚🩵💙💜</div>
+    
         </div>
       ) : (
         // QUESTION SCREEN
