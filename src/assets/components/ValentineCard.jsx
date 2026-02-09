@@ -26,6 +26,7 @@ export default function ValentineCard() {
     },
     { 
       text: "Luh pinindot nga", 
+      text: "Yes na kasiiiii", 
       image: "/images/Sad Cat Sticker by Capoo.gif",
     },
     { 
