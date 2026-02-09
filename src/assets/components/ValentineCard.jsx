@@ -21,7 +21,7 @@ export default function ValentineCard() {
       image: "/images/Sad Hamster Sticker.gif",
     },
     { 
-      text: "Sibukan mo pindutin yang no na yan", 
+      text: "Subukan mo pindutin yang no na yan", 
       image: "/images/Sad Face Sticker.gif",
     },
     { 
