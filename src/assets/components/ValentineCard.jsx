@@ -3,19 +3,13 @@ import React, { useState, useEffect, useRef } from "react";
 export default function ValentineCard() {
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
-  const [noButtonPos, setNoButtonPos] = useState<React.CSSProperties | null>(null);
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-  const noButtonRef = useRef<HTMLButtonElement | null>(null);
-  const isDodgingActive = useRef(false);
+  const [noButtonPos, setNoButtonPos] = useState(null);
+  const [isDodgingActive, setIsDodgingActive] = useState(false);
+  const noButtonRef = useRef(null);
 
-  // Track window resize
+  // Reset dodging position on resize so the button never gets lost
   useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
+    const handleResize = () => setNoButtonPos(null);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -67,44 +61,40 @@ export default function ValentineCard() {
   const isFinalPhase = noCount >= phases.length - 1;
 
   const handleNoClick = () => {
-    if (!isDodgingActive.current) {
-      isDodgingActive.current = true;
-      setNoButtonPos({ position: "fixed" });
-    }
-    setNoCount(noCount + 1);
+    if (!isDodgingActive) setIsDodgingActive(true);
+    setNoCount((prev) => prev + 1);
   };
 
-  const handleNoMove = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
-    if (!isDodgingActive.current || !noButtonRef.current) return;
-
-    const touch = "touches" in e ? e.touches[0] || e.changedTouches[0] : null;
-    const clientX = touch ? touch.clientX : e.clientX;
-    const clientY = touch ? touch.clientY : e.clientY;
-
-    if (!clientX || !clientY) return;
+  const handleNoMove = (e) => {
+    if (!isDodgingActive || !noButtonRef.current) return;
 
     const button = noButtonRef.current;
     const rect = button.getBoundingClientRect();
+    const buttonWidth = rect.width;
+    const buttonHeight = rect.height;
+
+    const margin = 20;
+    const minX = margin;
+    const maxX = window.innerWidth - buttonWidth - margin;
+    const minY = margin;
+    const maxY = window.innerHeight - buttonHeight - margin;
 
     const buttonCenterX = rect.left + rect.width / 2;
     const buttonCenterY = rect.top + rect.height / 2;
 
-    const distance = Math.hypot(clientX - buttonCenterX, clientY - buttonCenterY);
-    const dodgeRadius = 200;
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    const distance = Math.hypot(mouseX - buttonCenterX, mouseY - buttonCenterY);
+    const dodgeRadius = 100;
 
     if (distance < dodgeRadius) {
-      const angle = Math.atan2(buttonCenterY - clientY, buttonCenterX - clientX);
+      const angle = Math.atan2(buttonCenterY - mouseY, buttonCenterX - mouseX);
       const closeness = (dodgeRadius - distance) / dodgeRadius;
-      const dodgeDistance = 80 + closeness * 100;
+      const dodgeDistance = 60 + closeness * 80;
 
       let newX = rect.left + Math.cos(angle) * dodgeDistance;
       let newY = rect.top + Math.sin(angle) * dodgeDistance;
-
-      const margin = 40;
-      const minX = margin;
-      const maxX = windowSize.width - rect.width - margin;
-      const minY = margin;
-      const maxY = windowSize.height - rect.height - margin;
 
       newX = Math.max(minX, Math.min(maxX, newX));
       newY = Math.max(minY, Math.min(maxY, newY));
@@ -113,78 +103,85 @@ export default function ValentineCard() {
         position: "fixed",
         left: `${newX}px`,
         top: `${newY}px`,
-        zIndex: 1000
       });
     }
   };
 
+  useEffect(() => {
+    setNoButtonPos(null);
+  }, [noCount]);
+
   const getYesButtonSize = () => Math.min(16 + noCount * 8, 80);
 
   return (
-    <div className="main-container">
-      <div className="valentine-wrapper">
-        {yesPressed ? (
-          <div className="card scrollable fade-in">
-            <div className="card-content">
-              <img src="/images/lego batman GIF.gif" alt="Yes" className="main-image" />
-              <h1 className="title">YES?!</h1>
-              <div className="emoji-text">💕💕💕</div>
-              <img
-                src="/images/Happy In Love Sticker by KIKI.gif"
-                alt="Celebrate"
-                className="main-image"
-                style={{ margin: "20px 0" }}
-              />
-              <p className="subtitle">Yan ganyan dapat lang</p>
-              <p className="subtitle-small">HAHAHAHAHA</p>
-              <img src="/images/Cat Love GIF.gif" alt="Love" className="main-image" />
-            </div>
+    <div className="page">
+      {yesPressed ? (
+        <div className="content fade-in">
+          <img
+            src="/images/lego batman GIF.gif"
+            alt="Yes"
+            className="main-image"
+          />
+          <h1 className="title">YES?!</h1>
+          <div className="emoji-text">💕💕💕</div>
+          <img
+            src="/images/Happy In Love Sticker by KIKI.gif"
+            alt="Celebrate"
+            className="main-image"
+            style={{ margin: "20px 0" }}
+          />
+          <p className="subtitle">Yan ganyan dapat lang</p>
+          <p className="subtitle-small">HAHAHAHAHA</p>
+          <img
+            src="/images/Cat Love GIF.gif"
+            alt="Love"
+            className="main-image"
+          />
+        </div>
+      ) : (
+        <div className="content fade-in" key={noCount}>
+          <div className="emoji-badge">{currentPhase.emoji}</div>
+
+          <div className="image-wrapper">
+            <img
+              src={currentPhase.image}
+              alt="Valentine"
+              className="main-image"
+            />
           </div>
-        ) : (
-          // Fixed positioning for main card - no key to prevent remount
-          <div className="card scrollable fade-in">
-            <div className="card-content">
-              <div className="emoji-badge">{currentPhase.emoji}</div>
 
-              <div className="image-wrapper">
-                <img src={currentPhase.image} alt="Valentine" className="main-image" />
-              </div>
+          <h1 className="title">{currentPhase.text}</h1>
 
-              <h1 className="title">{currentPhase.text}</h1>
+          <div className="button-row">
+            <button
+              className="btn yes-btn"
+              style={{
+                fontSize: `${getYesButtonSize()}px`,
+                animation: noCount > 0 ? "pulse 1s infinite" : "none",
+              }}
+              onClick={() => setYesPressed(true)}
+            >
+              ❤️ Yes
+            </button>
 
-              <div className="button-container">
-                <button
-                  className="btn yes-btn"
-                  style={{
-                    fontSize: `${getYesButtonSize()}px`,
-                    animation: noCount > 2 ? "pulse 1s infinite" : "none"
-                  }}
-                  onClick={() => setYesPressed(true)}
-                >
-                  ❤️ Yes
-                </button>
-
-                {!isFinalPhase && (
-                  <button
-                    ref={noButtonRef}
-                    className="btn no-btn"
-                    style={noButtonPos || { position: "relative" }}
-                    onClick={handleNoClick}
-                    onMouseMove={handleNoMove}
-                    onTouchMove={handleNoMove}
-                  >
-                    {isDodgingActive.current ? "Catch me if you can!" : "No"}
-                  </button>
-                )}
-              </div>
-
-              {noCount === 2 && !isDodgingActive.current && (
-                <p className="hint-text">Click "No" to see what happens...</p>
-              )}
-            </div>
+            {!isFinalPhase && (
+              <button
+                ref={noButtonRef}
+                className={`btn no-btn ${isDodgingActive ? "dodging" : ""}`}
+                style={noButtonPos || { position: "relative" }}
+                onClick={handleNoClick}
+                onMouseMove={handleNoMove}
+              >
+                {isDodgingActive ? "Try to catch me!" : "No"}
+              </button>
+            )}
           </div>
-        )}
-      </div>
+
+          {noCount === 2 && !isDodgingActive && (
+            <p className="hint-text">Click "No" to see what happens...</p>
+          )}
+        </div>
+      )}
 
       <style jsx>{`
         * {
@@ -193,96 +190,51 @@ export default function ValentineCard() {
           padding: 0;
         }
 
-        body {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden;
-        }
-
-        .main-container {
+        .page {
           min-height: 100dvh;
           width: 100vw;
-          background: linear-gradient(
-            135deg,
-            #ffeaa7 0%,
-            #fab1a0 25%,
-            #fd79a8 50%,
-            #e17055 75%,
-            #d63031 100%
-          );
+          background: radial-gradient(circle at top, #ffeaa7, #fd79a8 60%, #d63031);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 16px;
-          overflow: hidden;
-          position: relative;
+          padding: 24px;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          overflow: hidden;
         }
 
-        .valentine-wrapper {
-          width: 100%;
-          max-width: 480px;
-          position: relative;
-        }
-
-        .card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-radius: 24px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-          width: 100%;
-          max-height: 85vh;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          overflow: visible;
-        }
-
-        .card.scrollable {
-          overflow-y: auto;
-          overflow-x: visible;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .card.scrollable::-webkit-scrollbar {
-          display: none;
-        }
-
-        .card-content {
-          padding: 32px 24px;
+        .content {
+          width: min(520px, 100%);
+          background: rgba(255, 255, 255, 0.92);
+          border-radius: 32px;
+          padding: clamp(24px, 5vw, 48px);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 16px;
-          min-height: min-content;
+          gap: 18px;
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .emoji-badge {
+          font-size: clamp(2.5rem, 6vw, 3.5rem);
         }
 
         .title {
-          font-size: clamp(1.2rem, 4vw, 1.8rem);
+          font-size: clamp(1.4rem, 4vw, 2rem);
           color: #be185d;
           font-weight: 700;
           line-height: 1.3;
-          word-break: break-word;
-          text-align: center;
         }
 
         .subtitle {
           font-size: clamp(1.1rem, 3vw, 1.5rem);
           color: #be185d;
           font-weight: 600;
-          text-align: center;
         }
 
         .subtitle-small {
           font-size: clamp(1rem, 2.5vw, 1.2rem);
           color: #9d174d;
-          text-align: center;
-        }
-
-        .emoji-badge {
-          font-size: clamp(2rem, 6vw, 3rem);
-          line-height: 1;
         }
 
         .emoji-text {
@@ -291,94 +243,63 @@ export default function ValentineCard() {
 
         .image-wrapper {
           width: 100%;
-          height: clamp(160px, 28vh, 220px);
+          max-height: 260px;
           display: flex;
-          align-items: center;
           justify-content: center;
-          flex-shrink: 0;
-          overflow: hidden;
         }
 
         .main-image {
           max-width: 100%;
           max-height: 100%;
-          border-radius: 16px;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+          border-radius: 20px;
           object-fit: contain;
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
 
-        .button-container {
+        .button-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 16px;
+          gap: 18px;
           justify-content: center;
-          margin-top: 8px;
           width: 100%;
-          flex-shrink: 0;
-          min-height: 60px;
-          position: relative;
         }
 
         .btn {
           padding: 14px 32px;
-          border-radius: 50px;
+          border-radius: 999px;
           border: none;
           cursor: pointer;
-          font-weight: bold;
-          white-space: nowrap;
-          transition: all 0.2s ease;
-          min-width: 100px;
+          font-weight: 700;
+          color: white;
+          min-width: 120px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn:hover {
           transform: translateY(-2px);
         }
 
-        .btn:active {
-          transform: translateY(0) scale(0.98);
-        }
-
         .yes-btn {
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-          color: white;
-          box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-        }
-
-        .yes-btn:hover {
-          box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+          background: linear-gradient(135deg, #22c55e, #16a34a);
+          box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
         }
 
         .no-btn {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          color: white;
-          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
           position: relative;
-          transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .no-btn.dodging {
+          will-change: transform, left, top;
           z-index: 100;
         }
 
-        .no-btn:active {
-          transform: translateY(0) scale(0.98);
-        }
-
         .hint-text {
-          font-size: 14px;
+          font-size: 0.9rem;
           color: #9d174d;
-          opacity: 0.7;
+          opacity: 0.75;
           font-style: italic;
-          margin-top: 8px;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
         }
 
         @keyframes pulse {
@@ -386,36 +307,37 @@ export default function ValentineCard() {
             transform: scale(1);
           }
           50% {
-            transform: scale(1.05);
+            transform: scale(1.08);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
           }
         }
 
         .fade-in {
-          animation: fadeIn 0.4s ease-out;
+          animation: fadeIn 0.4s ease;
         }
 
-        /* Mobile optimizations */
-        @media (max-width: 480px) {
-          .card-content {
-            padding: 24px 16px;
-            gap: 12px;
+        @media (max-width: 600px) {
+          .page {
+            padding: 16px;
+          }
+
+          .content {
+            border-radius: 24px;
           }
 
           .btn {
+            min-width: 100px;
             padding: 12px 24px;
-            font-size: 14px;
-            min-width: 80px;
-          }
-
-          .button-container {
-            gap: 12px;
-          }
-        }
-
-        /* Large screens */
-        @media (min-width: 1024px) {
-          .card-content {
-            padding: 40px;
           }
         }
       `}</style>
