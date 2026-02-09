@@ -7,13 +7,7 @@ export default function ValentineCard() {
 
   // --- YOUR ORIGINAL DATA ---
   const noButtonTexts = [
-    "No",
-    "Wag mo pipindutin",
-    "STOP",
-    "Hala sige subukan mo...",
-    "YES NA KASI",
-    "AYAW MO BA?",
-    "PLEASEEEE"
+    "No"
   ];
 
   const phases = [
@@ -23,15 +17,15 @@ export default function ValentineCard() {
       emoji: "💌"
     },
     { 
-      text: "Sure naba yan?", 
+      text: "What u mean no??", 
       image: "/images/Sad Hamster Sticker.gif",
     },
     { 
-      text: "Talaga Ba? 😰", 
+      text: "Sibukan mo pindutin yang no na yan", 
       image: "/images/Sad Face Sticker.gif",
     },
     { 
-      text: "Pag isipan mo naman mabuti ah", 
+      text: "Luh pinindot nga", 
       image: "/images/Sad Cat Sticker by Capoo.gif",
     },
     { 
