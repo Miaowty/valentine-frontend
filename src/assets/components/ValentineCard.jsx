@@ -51,32 +51,44 @@ export default function ValentineCard() {
   const currentNoText = noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
   // --- LOGIC WITH SAFE MARGIN ---
-  const handleNoClick = (e) => {
-    // Increment the attempt counter
-    setNoCount(prev => prev + 1);
+ const handleNoClick = () => {
+  setNoCount(prev => prev + 1);
 
-    // --- SAFE MARGIN LOGIC ---
-    // We define a 15% margin on all sides so it stays in the middle 70% of screen
-    const buttonWidth = 150; 
-    const buttonHeight = 50; 
+  const buttonWidth = 150;
+  const buttonHeight = 50;
 
-    // Calculate the Safe Zone boundaries
-    const minX = window.innerWidth * 0.15; // Start 15% from left
-    const maxX = (window.innerWidth * 0.85) - buttonWidth; // End 15% from right
-    
-    const minY = window.innerHeight * 0.15; // Start 15% from top
-    const maxY = (window.innerHeight * 0.85) - buttonHeight; // End 15% from bottom
+  // SAFE MARGIN (20% edges)
+  const minX = window.innerWidth * 0.2;
+  const maxX = window.innerWidth * 0.8 - buttonWidth;
+  const minY = window.innerHeight * 0.2;
+  const maxY = window.innerHeight * 0.8 - buttonHeight;
 
-    // Generate random coordinates within the Safe Zone
-    const randomX = Math.random() * (maxX - minX) + minX;
-    const randomY = Math.random() * (maxY - minY) + minY;
+  // CURRENT POSITION (fallback center if first click)
+  const currentX = noButtonPos
+    ? parseFloat(noButtonPos.left)
+    : window.innerWidth / 2;
 
-    setNoButtonPos({
-      position: 'fixed', // Breaks flow to move freely
-      left: `${randomX}px`,
-      top: `${randomY}px`,
-    });
-  };
+  const currentY = noButtonPos
+    ? parseFloat(noButtonPos.top)
+    : window.innerHeight / 2;
+
+  // LIMIT MOVEMENT DISTANCE (max 120px per click)
+  const moveRange = 120;
+
+  let newX = currentX + (Math.random() - 0.5) * moveRange;
+  let newY = currentY + (Math.random() - 0.5) * moveRange;
+
+  // KEEP INSIDE SAFE ZONE
+  newX = Math.max(minX, Math.min(maxX, newX));
+  newY = Math.max(minY, Math.min(maxY, newY));
+
+  setNoButtonPos({
+    position: "fixed",
+    left: `${newX}px`,
+    top: `${newY}px`,
+  });
+};
+
 
   const getYesButtonSize = () => {
     return Math.min(16 + noCount * 8, 80); // Base 16px, grows by 8px, caps at 80px
