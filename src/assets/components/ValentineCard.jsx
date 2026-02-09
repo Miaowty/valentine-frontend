@@ -51,29 +51,25 @@ export default function ValentineCard() {
   const currentNoText = noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
   // --- LOGIC WITH SAFE MARGIN ---
- const handleNoClick = () => {
+const handleNoClick = (e) => {
   setNoCount(prev => prev + 1);
 
   const buttonWidth = 150;
   const buttonHeight = 50;
 
-  // SAFE MARGIN (20% edges)
+  // SAFE MARGIN
   const minX = window.innerWidth * 0.2;
   const maxX = window.innerWidth * 0.8 - buttonWidth;
   const minY = window.innerHeight * 0.2;
   const maxY = window.innerHeight * 0.8 - buttonHeight;
 
-  // CURRENT POSITION (fallback center if first click)
-  const currentX = noButtonPos
-    ? parseFloat(noButtonPos.left)
-    : window.innerWidth / 2;
+  // GET ACTUAL BUTTON POSITION FROM SCREEN
+  const rect = e.currentTarget.getBoundingClientRect();
+  const currentX = rect.left;
+  const currentY = rect.top;
 
-  const currentY = noButtonPos
-    ? parseFloat(noButtonPos.top)
-    : window.innerHeight / 2;
-
-  // LIMIT MOVEMENT DISTANCE (max 120px per click)
-  const moveRange = 120;
+  // LIMITED RANDOM MOVEMENT
+  const moveRange = 90;
 
   let newX = currentX + (Math.random() - 0.5) * moveRange;
   let newY = currentY + (Math.random() - 0.5) * moveRange;
@@ -88,6 +84,7 @@ export default function ValentineCard() {
     top: `${newY}px`,
   });
 };
+
 
 
   const getYesButtonSize = () => {
