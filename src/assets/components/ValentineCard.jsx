@@ -1,26 +1,26 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 export default function ValentineCard() {
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
   const [noButtonPos, setNoButtonPos] = useState(null);
   const [windowSize, setWindowSize] = useState({
-    w: window.innerWidth,
-    h: window.innerHeight,
+    width: window.innerWidth,
+    height: window.innerHeight
   });
   const noButtonRef = useRef(null);
 
   // Track window resize
   useEffect(() => {
     const handleResize = () => {
-      setWindowSize({ w: window.innerWidth, h: window.innerHeight });
-      setNoButtonPos(null); // Reset position on resize
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const noButtonTexts = ["No"];
 
   const phases = [
     {
@@ -36,7 +36,7 @@ export default function ValentineCard() {
     {
       text: "Subukan mo pindutin yang no na yan",
       image: "/images/Sad Face Sticker.gif",
-      emoji: "😤",
+      emoji: "😠",
     },
     {
       text: "Yes na kasiiiii",
@@ -46,7 +46,7 @@ export default function ValentineCard() {
     {
       text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA",
       image: "/images/Sad Cat Sticker by MYAOWL.gif",
-      emoji: "💀",
+      emoji: "😈",
     },
     {
       text: "LAST CHANCE HAHAHAHA",
@@ -56,7 +56,7 @@ export default function ValentineCard() {
     {
       text: "PIDI YAN KASI",
       image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif",
-      emoji: "😭",
+      emoji: "🔥",
     },
     {
       text: "PINDUTIN MO NALANG YUNG YES PLEASE",
@@ -66,99 +66,83 @@ export default function ValentineCard() {
   ];
 
   const currentPhase = phases[Math.min(noCount, phases.length - 1)];
-  const currentNoText =
-    noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
+  // CLICK = increase phase
   const handleNoClick = () => {
     setNoCount((prev) => prev + 1);
   };
 
-  // Safe dodge function that keeps button inside viewport
-  const dodgeButton = useCallback(
-    (pointerX, pointerY) => {
-      const btn = noButtonRef.current;
-      if (!btn) return;
+  // DODGE CURSOR WITH BOUNDARIES
+  const handleNoMove = (e) => {
+    if (!noButtonRef.current) return;
 
-      const rect = btn.getBoundingClientRect();
-      const btnW = rect.width;
-      const btnH = rect.height;
-      const btnCenterX = rect.left + btnW / 2;
-      const btnCenterY = rect.top + btnH / 2;
+    const button = noButtonRef.current;
+    const rect = button.getBoundingClientRect();
+    
+    // Button dimensions
+    const buttonWidth = rect.width;
+    const buttonHeight = rect.height;
 
-      const distance = Math.hypot(pointerX - btnCenterX, pointerY - btnCenterY);
+    // Safe margins from edges
+    const margin = 20;
+    
+    // Calculate safe bounds
+    const minX = margin;
+    const maxX = windowSize.width - buttonWidth - margin;
+    const minY = margin;
+    const maxY = windowSize.height - buttonHeight - margin;
 
-      // Only dodge if cursor is close enough
-      if (distance < 130) {
-        const angle = Math.atan2(btnCenterY - pointerY, btnCenterX - pointerX);
-        const dodgeDist = 100 + Math.random() * 40;
+    // Button center
+    const buttonCenterX = rect.left + rect.width / 2;
+    const buttonCenterY = rect.top + rect.height / 2;
 
-        // Calculate new position
-        let newX = rect.left + Math.cos(angle) * dodgeDist;
-        let newY = rect.top + Math.sin(angle) * dodgeDist;
+    // Mouse position
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
 
-        // Padding from edges
-        const pad = 10;
+    // Distance from mouse to button center
+    const distance = Math.hypot(
+      mouseX - buttonCenterX,
+      mouseY - buttonCenterY
+    );
 
-        // Clamp to viewport
-        newX = Math.max(pad, Math.min(windowSize.w - btnW - pad, newX));
-        newY = Math.max(pad, Math.min(windowSize.h - btnH - pad, newY));
+    // Dodge if close enough (100px radius)
+    const dodgeRadius = 100;
+    
+    if (distance < dodgeRadius) {
+      // Calculate angle away from mouse
+      const angle = Math.atan2(
+        buttonCenterY - mouseY,
+        buttonCenterX - mouseX
+      );
 
-        // If it gets stuck in a corner, jump to opposite side
-        const isCornerX = newX <= pad + 5 || newX >= windowSize.w - btnW - pad - 5;
-        const isCornerY = newY <= pad + 5 || newY >= windowSize.h - btnH - pad - 5;
+      // Dodge distance based on how close mouse is
+      const closeness = (dodgeRadius - distance) / dodgeRadius;
+      const dodgeDistance = 60 + closeness * 80; // 60-140px based on closeness
 
-        if (isCornerX && isCornerY) {
-          newX = windowSize.w / 2 - btnW / 2 + (Math.random() - 0.5) * 200;
-          newY = windowSize.h / 2 - btnH / 2 + (Math.random() - 0.5) * 200;
-          newX = Math.max(pad, Math.min(windowSize.w - btnW - pad, newX));
-          newY = Math.max(pad, Math.min(windowSize.h - btnH - pad, newY));
-        }
+      // Calculate new position
+      let newX = rect.left + Math.cos(angle) * dodgeDistance;
+      let newY = rect.top + Math.sin(angle) * dodgeDistance;
 
-        setNoButtonPos({
-          position: "fixed",
-          left: `${newX}px`,
-          top: `${newY}px`,
-        });
-      }
-    },
-    [windowSize]
-  );
+      // STRICT BOUNDARY CHECK
+      newX = Math.max(minX, Math.min(maxX, newX));
+      newY = Math.max(minY, Math.min(maxY, newY));
 
-  // Mouse dodge (desktop)
-  const handleNoMouseMove = (e) => {
-    dodgeButton(e.clientX, e.clientY);
-  };
-
-  // Touch dodge (mobile)
-  const handleNoTouchMove = (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (touch) {
-      dodgeButton(touch.clientX, touch.clientY);
+      setNoButtonPos({
+        position: "fixed",
+        left: `${newX}px`,
+        top: `${newY}px`,
+      });
     }
   };
 
-  // Also dodge when finger gets near on the whole screen (mobile)
+  // Reset button position when phase changes
   useEffect(() => {
-    if (yesPressed || noCount === 0) return;
-
-    const handleGlobalTouch = (e) => {
-      const touch = e.touches[0];
-      if (touch) {
-        dodgeButton(touch.clientX, touch.clientY);
-      }
-    };
-
-    window.addEventListener("touchmove", handleGlobalTouch, { passive: true });
-    return () => window.removeEventListener("touchmove", handleGlobalTouch);
-  }, [yesPressed, noCount, dodgeButton]);
+    setNoButtonPos(null);
+  }, [noCount]);
 
   const getYesButtonSize = () => {
-    const isMobile = windowSize.w <= 768;
-    const base = isMobile ? 14 : 16;
-    const step = isMobile ? 5 : 8;
-    const max = isMobile ? 50 : 80;
-    return Math.min(base + noCount * step, max);
+    return Math.min(16 + noCount * 6, 60);
   };
 
   return (
@@ -209,37 +193,29 @@ export default function ValentineCard() {
               ❤️ Yes
             </button>
 
-            {/* No button — only dodges after first click */}
             <button
               ref={noButtonRef}
               className="btn no-btn"
-              style={noButtonPos && noCount > 0 ? noButtonPos : {}}
+              style={noButtonPos || { position: "relative" }}
               onClick={handleNoClick}
-              onMouseMove={noCount > 0 ? handleNoMouseMove : undefined}
-              onTouchMove={noCount > 0 ? handleNoTouchMove : undefined}
+              onMouseMove={handleNoMove}
             >
-              {currentNoText}
+              No
             </button>
           </div>
         </div>
       )}
 
-      <style>{`
+      <style jsx>{`
         * {
+          box-sizing: border-box;
           margin: 0;
           padding: 0;
-          box-sizing: border-box;
-        }
-
-        html, body {
-          overflow-x: hidden;
-          width: 100%;
         }
 
         .main-container {
-          min-height: 100vh;
           min-height: 100dvh;
-          width: 100%;
+          width: 100vw;
           background: linear-gradient(
             135deg,
             #ffeaa7 0%,
@@ -253,78 +229,69 @@ export default function ValentineCard() {
           justify-content: center;
           padding: 16px;
           overflow: hidden;
+          position: fixed;
+          top: 0;
+          left: 0;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
             Roboto, Helvetica, Arial, sans-serif;
         }
 
         .card {
-          background: rgba(255, 255, 255, 0.92);
+          background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(10px);
-          padding: 24px;
+          padding: 32px 24px;
           border-radius: 24px;
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
           text-align: center;
-          max-width: 500px;
+          max-width: 90vw;
           width: 100%;
+          max-height: 90vh;
           display: flex;
           flex-direction: column;
           align-items: center;
-          animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          gap: 16px;
+          overflow: auto;
         }
 
         .title {
-          font-size: clamp(1.2rem, 4vw, 2rem);
+          font-size: clamp(1.3rem, 4vw, 2rem);
           color: #be185d;
-          margin: 16px 0;
           font-weight: 700;
           line-height: 1.3;
-          padding: 0 8px;
-          word-wrap: break-word;
+          word-break: break-word;
         }
 
         .subtitle {
-          font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+          font-size: clamp(1.1rem, 3vw, 1.5rem);
           color: #be185d;
           font-weight: 600;
         }
 
         .subtitle-small {
-          font-size: clamp(1rem, 3vw, 1.2rem);
+          font-size: clamp(1rem, 2.5vw, 1.2rem);
           color: #9d174d;
-          margin-bottom: 16px;
         }
 
         .emoji-badge {
           font-size: clamp(2rem, 6vw, 3rem);
+          line-height: 1;
         }
 
         .emoji-text {
-          font-size: clamp(1.5rem, 5vw, 2rem);
+          font-size: clamp(1.5rem, 4vw, 2rem);
         }
 
         .image-wrapper {
           width: 100%;
-          height: clamp(180px, 30vw, 250px);
+          height: clamp(180px, 30vh, 250px);
           display: flex;
           align-items: center;
           justify-content: center;
-          overflow: hidden;
         }
 
         .main-image {
           max-width: 100%;
-          max-height: clamp(180px, 30vw, 250px);
+          max-height: 100%;
           border-radius: 16px;
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
           object-fit: contain;
@@ -332,11 +299,10 @@ export default function ValentineCard() {
 
         .button-container {
           display: flex;
+          flex-wrap: wrap;
           gap: 12px;
           justify-content: center;
-          align-items: center;
-          margin-top: 16px;
-          flex-wrap: wrap;
+          margin-top: 8px;
           width: 100%;
         }
 
@@ -347,93 +313,75 @@ export default function ValentineCard() {
           cursor: pointer;
           font-weight: bold;
           white-space: nowrap;
-          touch-action: manipulation;
-          -webkit-tap-highlight-color: transparent;
-          user-select: none;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          min-width: 80px;
+        }
+
+        .btn:hover {
+          transform: translateY(-2px);
+        }
+
+        .btn:active {
+          transform: translateY(0);
         }
 
         .yes-btn {
           background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
           color: white;
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
         }
 
         .yes-btn:hover {
-          transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba(34, 197, 94, 0.5);
-        }
-
-        .yes-btn:active {
-          transform: scale(0.97);
+          box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
         }
 
         .no-btn {
           background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
           color: white;
-          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-          position: relative;
-          transition: left 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
-                      top 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
-                      transform 0.2s ease;
-          z-index: 9999;
+          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+          transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+          will-change: transform, left, top;
         }
 
         .no-btn:hover {
-          transform: scale(1.05);
+          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
 
-        .no-btn:active {
-          transform: scale(0.97);
-        }
-
-        /* Tablet */
-        @media (min-width: 768px) {
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
           .card {
-            padding: 36px;
-            border-radius: 30px;
-          }
-
-          .button-container {
-            gap: 16px;
-            margin-top: 20px;
-          }
-
-          .btn {
-            padding: 14px 32px;
-          }
-        }
-
-        /* Desktop */
-        @media (min-width: 1024px) {
-          .card {
-            padding: 40px;
-          }
-
-          .main-container {
-            padding: 40px;
-          }
-        }
-
-        /* Small phones */
-        @media (max-width: 380px) {
-          .card {
-            padding: 16px;
-            border-radius: 20px;
+            padding: 24px 16px;
+            gap: 12px;
           }
 
           .btn {
             padding: 10px 20px;
             font-size: 14px;
           }
+        }
 
-          .image-wrapper {
-            height: 160px;
+        /* Large screens */
+        @media (min-width: 1024px) {
+          .card {
+            max-width: 500px;
+            padding: 40px;
           }
+        }
 
-          .main-image {
-            max-height: 160px;
+        /* Animation */
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
           }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .fade-in {
+          animation: fadeIn 0.4s ease-out;
         }
       `}</style>
     </div>
