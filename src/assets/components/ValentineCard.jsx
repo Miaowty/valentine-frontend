@@ -116,7 +116,7 @@ export default function ValentineCard() {
                 style={noButtonPos || undefined}
                 onClick={handleNoClick}
               >
-                {noButtonPos ? "No"}
+                {noButtonPos ? "No" : "No"}
               </button>
             )}
           </div>
