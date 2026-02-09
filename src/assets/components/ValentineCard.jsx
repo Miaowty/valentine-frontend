@@ -3,15 +3,14 @@ import React, { useState } from 'react';
 export default function ValentineCard() {
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
-  const [noButtonPos, setNoButtonPos] = useState({ top: null, left: null });
+  const [noButtonPos, setNoButtonPos] = useState(null); // null = default position
 
-  // 1. Array for the "No" button messages specifically
+  // --- YOUR ORIGINAL DATA ---
   const noButtonTexts = [
     "No",
-    "Wag mo kasi pindutin to kitde",
-    "Sure naba yan?",
+    "Wag mo pipindutin",
+    "STOP",
     "Hala sige subukan mo...",
-    "Sinubukan nga",
     "YES NA KASI",
     "AYAW MO BA?",
     "PLEASEEEE"
@@ -21,125 +20,283 @@ export default function ValentineCard() {
     { 
       text: "Will you be my Valentine?", 
       image: "/images/Cutesy cat.jpg",
-      font: "'Pacifico', cursive"
+      emoji: "💌"
     },
     { 
-      text: "Sure naba yan?🥺", 
-      image: "/images/Peach and Goma.gif",
-      font: "'Pacifico', cursive" 
+      text: "Sure naba yan?", 
+      image: "/images/Sad Hamster Sticker.gif",
     },
     { 
       text: "Talaga Ba? 😰", 
-      image: "/images/Bubu Dudu.gif",
-      font: "'Pacifico', cursive" 
+      image: "/images/Sad Face Sticker.gif",
     },
     { 
-      text: "Think again... 😤", 
-      image: "/images/Bubu Dudu Angry.gif",
-      font: "'Pacifico', cursive" 
+      text: "Pag isipan mo naman mabuti ah", 
+      image: "/images/Sad Cat Sticker by Capoo.gif",
     },
     { 
-      text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA 🙏", 
-      image: "/images/Peach and Goma.gif",
-      font: "'Pacifico', cursive" 
+      text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA", 
+      image: "/images/Sad Cat Sticker by MYAOWL.gif",
     },
     { 
-      text: "LAST CHANCE HAHAHAHA (PINDUTIN MO NA LANG KASI YUNG YES)", 
-      image: "/images/Bubu Dudu.gif",
-      font: "'Pacifico', cursive" 
+      text: "LAST CHANCE HAHAHAHA", 
+      image: "/images/Baby Meme GIF.gif",
     },
     { 
-      text: "Final Warning!! ⚠️", // Added text here so it's not empty
-      image: "/images/Bubu Dudu.gif",
-      font: "'Pacifico', cursive" 
+      text: "PIDI YAN KASI", 
+      image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif",
+    },
+    { 
+      text: "PINDUTIN MO NALANG YUNG YES PLEASE", 
+      image: "/images/Sticker ねこ Sticker by Japan.gif",
     }
   ];
 
   const currentPhase = phases[Math.min(noCount, phases.length - 1)];
-  const yesButtonSize = noCount * 25 + 18;
+  const currentNoText = noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)];
 
-  const handleNoClick = () => {
-    setNoCount(noCount + 1);
-    const randomTop = Math.floor(Math.random() * 70) + 15;
-    const randomLeft = Math.floor(Math.random() * 70) + 15;
-    setNoButtonPos({ top: `${randomTop}%`, left: `${randomLeft}%` });
+  // --- LOGIC WITH SAFE MARGIN ---
+  const handleNoClick = (e) => {
+    // Increment the attempt counter
+    setNoCount(prev => prev + 1);
+
+    // --- SAFE MARGIN LOGIC ---
+    // We define a 15% margin on all sides so it stays in the middle 70% of screen
+    const buttonWidth = 150; 
+    const buttonHeight = 50; 
+
+    // Calculate the Safe Zone boundaries
+    const minX = window.innerWidth * 0.15; // Start 15% from left
+    const maxX = (window.innerWidth * 0.85) - buttonWidth; // End 15% from right
+    
+    const minY = window.innerHeight * 0.15; // Start 15% from top
+    const maxY = (window.innerHeight * 0.85) - buttonHeight; // End 15% from bottom
+
+    // Generate random coordinates within the Safe Zone
+    const randomX = Math.random() * (maxX - minX) + minX;
+    const randomY = Math.random() * (maxY - minY) + minY;
+
+    setNoButtonPos({
+      position: 'fixed', // Breaks flow to move freely
+      left: `${randomX}px`,
+      top: `${randomY}px`,
+    });
   };
 
-  if (yesPressed) {
-    return (
-      <div style={{ ...containerStyle, overflowY: 'auto', display: 'block', padding: '40px 20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <img src="/images/lego batman GIF.gif" alt="Yes" style={responsiveImageStyle} />
-          <h1 style={{...successTextStyle}}>YES?!</h1>
-          <img src="/images/Happy In Love Sticker by KIKI.gif" alt="Celebrate" style={responsiveImageStyle} />
-          <h1 style={{...successTextStyle}}>Yan ganyan dapat lang HAHAHAHAHA</h1>
-          <img src="/images/Cat Love GIF.gif" alt="Love" style={{ ...responsiveImageStyle, marginTop: '20px' }} />
-        </div>
-      </div>
-    );
-  }
+  const getYesButtonSize = () => {
+    return Math.min(16 + noCount * 8, 80); // Base 16px, grows by 8px, caps at 80px
+  };
 
   return (
-    <div style={containerStyle}>
-      <img style={responsiveImageStyle} src={currentPhase.image} alt="Valentine Phase" />
-      
-      {/* Updated: Added fontFamily to headerStyle here */}
-      <h1 style={{...headerStyle, fontFamily: currentPhase.font || 'inherit'}}>
-        {currentPhase.text}
-      </h1>
-      
-      <div style={buttonGroupStyle}>
-        <button
-          style={{ ...yesButtonStyle, fontSize: `${Math.min(yesButtonSize, 200)}px` }}
-          onClick={() => setYesPressed(true)}
-        >
-          Yes
-        </button>
+    <div className="main-container">
+      {yesPressed ? (
+        // SUCCESS SCREEN
+        <div className="card fade-in">
+          <img 
+            src="/images/lego batman GIF.gif" 
+            alt="Yes" 
+            className="main-image"
+          />
+          <h1 className="title">YES?!</h1>
+          <div className="emoji-text">💕💕💕</div>
+          <img 
+            src="/images/Happy In Love Sticker by KIKI.gif" 
+            alt="Celebrate" 
+            className="main-image"
+            style={{ margin: '20px 0' }}
+          />
+          <p className="subtitle">Yan ganyan dapat lang</p>
+          <p className="subtitle-small">HAHAHAHAHA</p>
+          <img
+            src="/images/Cat Love GIF.gif" 
+            alt="Love" 
+            className="main-image"
+          />
+          <div className="emoji-row">🩷❤️🧡💛💚🩵💙💜</div>
+        </div>
+      ) : (
+        // QUESTION SCREEN
+        <div className="card fade-in" key={noCount}>
+          
+          <div className="emoji-badge">{currentPhase.emoji}</div>
+
+          <div className="image-wrapper">
+            <img 
+              src={currentPhase.image} 
+              alt="Valentine" 
+              className="main-image"
+            />
+          </div>
+          
+          <h1 className="title">{currentPhase.text}</h1>
+          
+          <div className="button-container">
+            <button
+              className="btn yes-btn"
+              style={{ fontSize: `${getYesButtonSize()}px` }}
+              onClick={() => setYesPressed(true)}
+            >
+              ❤️ Yes
+            </button>
+            
+            <button
+              className="btn no-btn"
+              style={noButtonPos ? noButtonPos : {}}
+              onClick={handleNoClick} // Only moves on click
+            >
+              {currentNoText}
+            </button>
+          </div>
+          
+        </div>
+      )}
+
+      {/* --- STYLES --- */}
+      <style jsx>{`
+        /* Original Gradient Background */
+        .main-container {
+          min-height: 100vh;
+          width: 100vw;
+          background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 25%, #fd79a8 50%, #e17055 75%, #d63031 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          overflow: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .card {
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(10px);
+          padding: 40px;
+          border-radius: 30px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+          text-align: center;
+          max-width: 500px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          transition: all 0.3s ease;
+          position: relative;
+          z-index: 10;
+        }
+
+        /* Animations: Only In and Out */
+        @keyframes popIn {
+          0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .fade-in {
+          animation: popIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        /* Typography */
+        .title {
+          font-size: 2rem;
+          color: #be185d;
+          margin: 20px 0;
+          line-height: 1.3;
+          font-weight: 700;
+        }
+
+        .subtitle {
+          font-size: 1.5rem;
+          color: #be185d;
+          font-weight: 600;
+          margin-bottom: 5px;
+        }
+
+        .subtitle-small {
+          font-size: 1.2rem;
+          color: #9d174d;
+          margin-bottom: 20px;
+        }
+
+        .footer-text {
+          margin-top: 20px;
+          color: #9d174d;
+          font-size: 0.9rem;
+          opacity: 0.8;
+        }
+
+        .emoji-badge {
+          font-size: 3rem;
+          margin-bottom: 10px;
+        }
+
+        .emoji-text {
+          font-size: 2rem;
+          margin: 10px 0;
+        }
         
-        <button
-          onClick={handleNoClick}
-          style={{
-            ...noButtonStyle,
-            position: noButtonPos.top ? 'fixed' : 'relative',
-            top: noButtonPos.top,
-            left: noButtonPos.left,
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {/* Pick text from the noButtonTexts array based on noCount */}
-          {noButtonTexts[Math.min(noCount, noButtonTexts.length - 1)]}
-        </button>
-      </div>
+        .emoji-row {
+          font-size: 1.5rem;
+          margin-top: 20px;
+          letter-spacing: 5px;
+        }
+
+        /* Images */
+        .image-wrapper {
+          width: 100%;
+          height: 250px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .main-image {
+          max-width: 100%;
+          max-height: 250px;
+          border-radius: 16px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+          object-fit: contain;
+        }
+
+        /* Buttons */
+        .button-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+          justify-content: center;
+          align-items: center;
+          margin-top: 20px;
+          width: 100%;
+          min-height: 80px;
+        }
+
+        .btn {
+          padding: 12px 24px;
+          border-radius: 50px;
+          border: none;
+          cursor: pointer;
+          font-weight: bold;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          white-space: nowrap;
+        }
+
+        /* Original Green Gradient */
+        .yes-btn {
+          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+          color: white;
+          box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
+        .yes-btn:hover {
+          transform: scale(1.05);
+        }
+
+        /* Original Red Gradient */
+        .no-btn {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+          z-index: 9999;
+          transition: all 0.3s ease; /* Smooth movement when clicked */
+        }
+      `}</style>
     </div>
   );
 }
-
-// ... rest of your styles stay the same ...
-const containerStyle = {
-  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-  width: '100vw', height: '100vh', backgroundColor: 'rgb(246, 175, 175)', textAlign: 'center', padding: '20px', overflow: 'hidden',
-};
-
-const responsiveImageStyle = {
-  width: '90%', maxWidth: '300px', height: '250px', objectFit: 'contain', borderRadius: '20px', marginBottom: '20px',
-};
-
-const headerStyle = {
-  fontSize: 'clamp(1.5rem, 8vw, 2.5rem)', color: '#e11d48', margin: '10px 0 30px 0',
-};
-
-const successTextStyle = {
-  fontSize: 'clamp(2rem, 10vw, 3.5rem)', color: '#e11d48',
-};
-
-const buttonGroupStyle = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%', minHeight: '150px',
-};
-
-const yesButtonStyle = {
-  backgroundColor: '#22c55e', color: 'white', fontWeight: 'bold', padding: '12px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer', zIndex: 10,
-};
-
-const noButtonStyle = {
-  backgroundColor: '#ef4444', color: 'white', fontWeight: 'bold', padding: '12px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer', zIndex: 10,
-};
