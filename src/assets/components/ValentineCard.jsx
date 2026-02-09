@@ -1,72 +1,44 @@
 import React, { useState, useEffect, useRef } from "react";
 
 export default function ValentineCard() {
+  const getInitialWindowSize = () => ({
+    width: typeof window === "undefined" ? 0 : window.innerWidth,
+    height: typeof window === "undefined" ? 0 : window.innerHeight,
+  });
+
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
   const [noButtonPos, setNoButtonPos] = useState(null);
-  const [isDodgingActive, setIsDodgingActive] = useState(false);
+  const [windowSize, setWindowSize] = useState(getInitialWindowSize);
+
   const noButtonRef = useRef(null);
 
-  // Reset dodging position on resize so the button never gets lost
   useEffect(() => {
-    const handleResize = () => setNoButtonPos(null);
+    const handleResize = () =>
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const phases = [
-    {
-      text: "Will you be my Valentine?",
-      image: "/images/Cutesy cat.jpg",
-      emoji: "💌",
-    },
-    {
-      text: "What u mean no??",
-      image: "/images/Sad Hamster Sticker.gif",
-      emoji: "😢",
-    },
-    {
-      text: "Subukan mo pindutin yang no na yan",
-      image: "/images/Sad Face Sticker.gif",
-      emoji: "😠",
-    },
-    {
-      text: "Yes na kasiiiii",
-      image: "/images/Sad Cat Sticker by Capoo.gif",
-      emoji: "🥺",
-    },
-    {
-      text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA",
-      image: "/images/Sad Cat Sticker by MYAOWL.gif",
-      emoji: "😈",
-    },
-    {
-      text: "LAST CHANCE HAHAHAHA",
-      image: "/images/Baby Meme GIF.gif",
-      emoji: "⚠️",
-    },
-    {
-      text: "PIDI YAN KASI",
-      image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif",
-      emoji: "🔥",
-    },
-    {
-      text: "PINDUTIN MO NALANG YUNG YES PLEASE",
-      image: "/images/Sticker ねこ Sticker by Japan.gif",
-      emoji: "🙏",
-    },
+    { text: "Will you be my Valentine?", image: "/images/Cutesy cat.jpg", emoji: "💌" },
+    { text: "What u mean no??", image: "/images/Sad Hamster Sticker.gif", emoji: "😢" },
+    { text: "Subukan mo pindutin yang no na yan", image: "/images/Sad Face Sticker.gif", emoji: "😠" },
+    { text: "Yes na kasiiiii", image: "/images/Sad Cat Sticker by Capoo.gif", emoji: "🥺" },
+    { text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA", image: "/images/Sad Cat Sticker by MYAOWL.gif", emoji: "😈" },
+    { text: "LAST CHANCE HAHAHAHA", image: "/images/Baby Meme GIF.gif", emoji: "⚠️" },
+    { text: "PIDI YAN KASI", image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif", emoji: "🔥" },
+    { text: "PINDUTIN MO NALANG YUNG YES PLEASE", image: "/images/Sticker ねこ Sticker by Japan.gif", emoji: "🙏" },
   ];
 
   const currentPhase = phases[Math.min(noCount, phases.length - 1)];
   const isFinalPhase = noCount >= phases.length - 1;
 
-  const handleNoClick = () => {
-    if (!isDodgingActive) setIsDodgingActive(true);
-    setNoCount((prev) => prev + 1);
-  };
-
-  const handleNoMove = (e) => {
-    if (!isDodgingActive || !noButtonRef.current) return;
+  const placeButtonSafely = () => {
+    if (!noButtonRef.current) return;
 
     const button = noButtonRef.current;
     const rect = button.getBoundingClientRect();
@@ -75,41 +47,26 @@ export default function ValentineCard() {
 
     const margin = 20;
     const minX = margin;
-    const maxX = window.innerWidth - buttonWidth - margin;
     const minY = margin;
-    const maxY = window.innerHeight - buttonHeight - margin;
+    const maxX = windowSize.width - buttonWidth - margin;
+    const maxY = windowSize.height - buttonHeight - margin;
 
-    const buttonCenterX = rect.left + rect.width / 2;
-    const buttonCenterY = rect.top + rect.height / 2;
+    if (maxX <= minX || maxY <= minY) return;
 
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
+    const randomX = Math.random() * (maxX - minX) + minX;
+    const randomY = Math.random() * (maxY - minY) + minY;
 
-    const distance = Math.hypot(mouseX - buttonCenterX, mouseY - buttonCenterY);
-    const dodgeRadius = 100;
-
-    if (distance < dodgeRadius) {
-      const angle = Math.atan2(buttonCenterY - mouseY, buttonCenterX - mouseX);
-      const closeness = (dodgeRadius - distance) / dodgeRadius;
-      const dodgeDistance = 60 + closeness * 80;
-
-      let newX = rect.left + Math.cos(angle) * dodgeDistance;
-      let newY = rect.top + Math.sin(angle) * dodgeDistance;
-
-      newX = Math.max(minX, Math.min(maxX, newX));
-      newY = Math.max(minY, Math.min(maxY, newY));
-
-      setNoButtonPos({
-        position: "fixed",
-        left: `${newX}px`,
-        top: `${newY}px`,
-      });
-    }
+    setNoButtonPos({
+      position: "fixed",
+      left: `${randomX}px`,
+      top: `${randomY}px`,
+    });
   };
 
-  useEffect(() => {
-    setNoButtonPos(null);
-  }, [noCount]);
+  const handleNoClick = () => {
+    setNoCount((prev) => prev + 1);
+    placeButtonSafely();
+  };
 
   const getYesButtonSize = () => Math.min(16 + noCount * 8, 80);
 
@@ -117,11 +74,7 @@ export default function ValentineCard() {
     <div className="page">
       {yesPressed ? (
         <div className="content fade-in">
-          <img
-            src="/images/lego batman GIF.gif"
-            alt="Yes"
-            className="main-image"
-          />
+          <img src="/images/lego batman GIF.gif" alt="Yes" className="main-image" />
           <h1 className="title">YES?!</h1>
           <div className="emoji-text">💕💕💕</div>
           <img
@@ -132,22 +85,14 @@ export default function ValentineCard() {
           />
           <p className="subtitle">Yan ganyan dapat lang</p>
           <p className="subtitle-small">HAHAHAHAHA</p>
-          <img
-            src="/images/Cat Love GIF.gif"
-            alt="Love"
-            className="main-image"
-          />
+          <img src="/images/Cat Love GIF.gif" alt="Love" className="main-image" />
         </div>
       ) : (
         <div className="content fade-in" key={noCount}>
           <div className="emoji-badge">{currentPhase.emoji}</div>
 
           <div className="image-wrapper">
-            <img
-              src={currentPhase.image}
-              alt="Valentine"
-              className="main-image"
-            />
+            <img src={currentPhase.image} alt="Valentine" className="main-image" />
           </div>
 
           <h1 className="title">{currentPhase.text}</h1>
@@ -167,18 +112,17 @@ export default function ValentineCard() {
             {!isFinalPhase && (
               <button
                 ref={noButtonRef}
-                className={`btn no-btn ${isDodgingActive ? "dodging" : ""}`}
-                style={noButtonPos || { position: "relative" }}
+                className="btn no-btn"
+                style={noButtonPos || undefined}
                 onClick={handleNoClick}
-                onMouseMove={handleNoMove}
               >
-                {isDodgingActive ? "Try to catch me!" : "No"}
+                {noButtonPos ? "Catch me again!" : "No"}
               </button>
             )}
           </div>
 
-          {noCount === 2 && !isDodgingActive && (
-            <p className="hint-text">Click "No" to see what happens...</p>
+          {noCount === 2 && !noButtonPos && (
+            <p className="hint-text">Keep clicking “No” if you dare…</p>
           )}
         </div>
       )}
@@ -290,11 +234,6 @@ export default function ValentineCard() {
           position: relative;
         }
 
-        .no-btn.dodging {
-          will-change: transform, left, top;
-          z-index: 100;
-        }
-
         .hint-text {
           font-size: 0.9rem;
           color: #9d174d;
@@ -330,11 +269,9 @@ export default function ValentineCard() {
           .page {
             padding: 16px;
           }
-
           .content {
             border-radius: 24px;
           }
-
           .btn {
             min-width: 100px;
             padding: 12px 24px;
