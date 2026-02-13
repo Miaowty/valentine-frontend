@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
-=======
-import React, { useState } from "react";
-import styles from "./ValentineCard.module.css";
-import { YES_BASE, YES_MAX, YES_STEP, phases } from "./valentineData";
->>>>>>> 9a08f97 (Refactor Valentine card and add success audio player)
 
 export default function ValentineCard() {
   const getInitialWindowSize = () => ({
@@ -14,7 +8,6 @@ export default function ValentineCard() {
 
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
-<<<<<<< HEAD
   const [noButtonPos, setNoButtonPos] = useState(null);
   const [windowSize, setWindowSize] = useState(getInitialWindowSize);
 
@@ -73,22 +66,11 @@ export default function ValentineCard() {
   const handleNoClick = () => {
     setNoCount((prev) => prev + 1);
     placeButtonSafely();
-=======
-
-  const currentPhase = phases[Math.min(noCount, phases.length - 1)];
-  const yesButtonSize = Math.min(YES_BASE + noCount * YES_STEP, YES_MAX);
-  const noScale = Math.max(1 - noCount * 0.12, 0.45);
-  const isNoAvailable = noCount < phases.length - 1;
-
-  const handleNoClick = () => {
-    setNoCount((prev) => prev + 1);
->>>>>>> 9a08f97 (Refactor Valentine card and add success audio player)
   };
 
   const getYesButtonSize = () => Math.min(16 + noCount * 8, 80);
 
   return (
-<<<<<<< HEAD
     <div className="page">
       {yesPressed ? (
         <div className="content fade-in">
@@ -122,49 +104,6 @@ export default function ValentineCard() {
                 fontSize: `${getYesButtonSize()}px`,
                 animation: noCount > 0 ? "pulse 1s infinite" : "none",
               }}
-=======
-    <div className={styles.mainContainer}>
-      {yesPressed ? (
-        <div className={`${styles.card} ${styles.fadeIn}`}>
-          <img src="/images/lego batman GIF.gif" alt="Yes" className={styles.mainImage} />
-          <h1 className={styles.title}>YES?!</h1>
-          <div className={styles.emojiText}>💕💕💕</div>
-          <img
-            src="/images/Happy In Love Sticker by KIKI.gif"
-            alt="Celebrate"
-            className={`${styles.mainImage} ${styles.celebrateImage}`}
-          />
-          <p className={styles.subtitle}>I always knew na mag yyes ka naman e HAHAHAHA</p>
-          
-          <img src="/images/Cat Love GIF.gif" alt="Love" className={styles.mainImage} />
-          <audio
-            className={styles.audioPlayer}
-            controls
-            autoPlay
-            loop
-            preload="metadata"
-            aria-label="Celebration music player"
-          >
-            <source src="/audio/valentine-song.mp3" type="audio/mpeg" />
-            Your browser does not support audio playback.
-          </audio>
-          <div className={styles.emojiRow}>🩷❤️🧡💛💚🩵💙💜</div>
-        </div>
-      ) : (
-        <div className={`${styles.card} ${styles.fadeIn}`}>
-          <div className={styles.emojiBadge}>{currentPhase.emoji}</div>
-
-          <div className={styles.imageWrapper}>
-            <img src={currentPhase.image} alt="Valentine" className={styles.mainImage} />
-          </div>
-
-          <h1 className={styles.title}>{currentPhase.text}</h1>
-
-          <div className={styles.buttonContainer}>
-            <button
-              className={`${styles.btn} ${styles.yesBtn}`}
-              style={{ fontSize: `${yesButtonSize}px` }}
->>>>>>> 9a08f97 (Refactor Valentine card and add success audio player)
               onClick={() => setYesPressed(true)}
               aria-label="Accept the Valentine question"
               type="button"
@@ -172,7 +111,6 @@ export default function ValentineCard() {
               ❤️ Yes
             </button>
 
-<<<<<<< HEAD
             {!isFinalPhase && (
               <button
                 ref={noButtonRef}
@@ -342,22 +280,6 @@ export default function ValentineCard() {
           }
         }
       `}</style>
-=======
-            {isNoAvailable && (
-              <button
-                className={`${styles.btn} ${styles.noBtn}`}
-                style={{ transform: `scale(${noScale})` }}
-                onClick={handleNoClick}
-                aria-label="Decline the Valentine question"
-                type="button"
-              >
-                No
-              </button>
-            )}
-          </div>
-        </div>
-      )}
->>>>>>> 9a08f97 (Refactor Valentine card and add success audio player)
     </div>
   );
 }
