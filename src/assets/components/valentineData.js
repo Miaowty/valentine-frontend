@@ -14,7 +14,7 @@ export const phases = [
     emoji: "😢",
   },
   {
-    text: "Talaga Ba? 😰",
+    text: "Baka mali ka ng pindot",
     image: "/images/Sad Face Sticker.gif",
     emoji: "😟",
   },
@@ -24,12 +24,12 @@ export const phases = [
     emoji: "🥺",
   },
   {
-    text: "LALAGYAN KITA NG MALWARE PAG UMAYAW KAPA",
+    text: "Subukan mong pindutin yung no",
     image: "/images/Sad Cat Sticker by MYAOWL.gif",
     emoji: "😈",
   },
   {
-    text: "LAST CHANCE HAHAHAHA",
+    text: "Pinindot nga",
     image: "/images/Baby Meme GIF.gif",
     emoji: "⚠️",
   },
