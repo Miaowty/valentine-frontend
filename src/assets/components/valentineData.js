@@ -5,7 +5,7 @@ export const YES_MAX = 80;
 export const phases = [
   {
     text: "Will you be my Valentine?",
-    image: "/images/Cutesy cat.jpg",
+    image: "/images/Valentine offer.png",
     emoji: "💌",
   },
   {
@@ -34,7 +34,7 @@ export const phases = [
     emoji: "⚠️",
   },
   {
-    text: "PIDI YAN KASI",
+    text: "PIDI YAN KASI AYAW MO BA SAKIN :<",
     image: "/images/Sad Neon Genesis Evangelion Sticker by Castaways.gif",
     emoji: "🔥",
   },
