@@ -41,7 +41,7 @@ export default function ValentineCard() {
             <source src="/audio/valentine-song.mp3" type="audio/mpeg" />
             Your browser does not support audio playback.
           </audio>
-          <div className={styles.emojiRow}>🩷❤️🧡💛💚🩵💙💜</div>
+          <div className={styles.emojiRow}>🩷🩷🩷🩷🩷🩷🩷</div>
         </div>
       ) : (
         <div className={`${styles.card} ${styles.fadeIn}`}>
